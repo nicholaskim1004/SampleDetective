@@ -31,8 +31,13 @@ plt.show()
 
 def peak_finder(song):
     
-    S = np.abs(librosa.stft(y1, n_fft=2048, hop_length=512))
-    frequencies = librosa.fft_frequencies(sr=sr1, n_fft=2048)
+    from collections import defaultdict, OrderedDict
+    
+    y, sr = librosa.load(song)
+
+
+    S = np.abs(librosa.stft(y, n_fft=2048, hop_length=512))
+    frequencies = librosa.fft_frequencies(sr=sr, n_fft=2048)
         
     bands= [[20,60],[60,250],[250,500],[500,2000],[2000,6000]]
 
@@ -44,14 +49,17 @@ def peak_finder(song):
             
         band_mask = (frequencies >= start) & (frequencies < end)
         band_energy = S[band_mask, :]
-        peaks = np.argmax(band_energy, axis=1) 
+        peaks = np.max(band_energy, axis=1) 
+        peak_ind = np.argmax(band_energy, axis=1)
 
-        peak_times = librosa.frames_to_time(peaks)
+        peak_times = librosa.frames_to_time(peak_ind)
         
         for i in range(len(peak_times)):
             fingerprint[peak_times[i]].append(peaks[i])
-
-    return fingerprint
+        
+        sorted_fingerprint = OrderedDict(sorted(fingerprint.items()))
+            
+    return sorted_fingerprint
         
 ostava_peaks = peak_finder("songs/Ostavi trag_September.mp3")
 duckworth_peaks = peak_finder("songs/DUCKWORTH_Kendrick_Lamar.mp3")
