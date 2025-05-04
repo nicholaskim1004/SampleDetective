@@ -76,5 +76,26 @@ def hasher(points, target_size=5, quantize=20):
             quant_target = int(f_target // quantize)
             
             h = hash((int(quant_target),int(quant_anchor),round(delta_t,3)))
-            fingerprint[h] = t_target
+            fingerprint[h] = (t_target,f_target)
     return fingerprint
+
+o_fingerprint = hasher(ostava_peaks,5)
+d_fingerprint = hasher(duckworth_peaks,5)
+
+match = []
+match_loc = []
+
+for id in o_fingerprint:
+    if id in d_fingerprint:
+        f_a = o_fingerprint[id][1]
+        f_tar = d_fingerprint[id][1]
+        
+        delta = f_tar - f_a 
+        
+        match.append(delta)
+        
+        if np.abs(delta) < 1:
+            t_a = o_fingerprint[id][0]
+            t_tar = d_fingerprint[id][0]
+            match_loc.append((id,t_a,t_tar))
+match_loc
