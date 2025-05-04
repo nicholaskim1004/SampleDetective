@@ -61,4 +61,18 @@ def peak_finder(song):
 ostava_peaks = peak_finder("songs/Ostavi trag_September.mp3")
 duckworth_peaks = peak_finder("songs/DUCKWORTH_Kendrick_Lamar.mp3")
 
-
+def hasher(points, target_size=5):
+    fingerprint = defaultdict(list)
+    for i in range(len(points)):
+        t_anchor, f_anchor = points[i]
+        for j in range(1,target_size+1):
+            if i+j >= len(points):
+                break
+            t_target, f_target = points[i+j]
+            
+            delta_t = t_target - t_anchor
+            
+            h = hash((int(f_target),int(f_anchor),round(delta_t,3)))
+            
+            fingerprint[h] = t_anchor
+    return fingerprint
