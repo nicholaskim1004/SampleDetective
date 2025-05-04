@@ -54,7 +54,7 @@ def peak_finder(song):
         for i in range(len(peak_times)):
             constellation.append((peak_times[i],peaks[i]))
         
-        sorted_constellation = sorted(constellation.items())
+        sorted_constellation = sorted(constellation)
             
     return sorted_constellation
         
