@@ -1,7 +1,7 @@
 import librosa
 import matplotlib.pyplot as plt
 import numpy as np
-from collections import defaultdict
+from collections import defaultdict,OrderedDict
 
 y1, sr1 = librosa.load("/Users/nicholaskim/Documents/Repositories/sample detector/songs/Ostavi trag_September.mp3")
 
@@ -31,17 +31,14 @@ plt.show()
 
 def peak_finder(song):
     
-    from collections import defaultdict, OrderedDict
-    
     y, sr = librosa.load(song)
-
 
     S = np.abs(librosa.stft(y, n_fft=2048, hop_length=512))
     frequencies = librosa.fft_frequencies(sr=sr, n_fft=2048)
         
     bands= [[20,60],[60,250],[250,500],[500,2000],[2000,6000]]
 
-    fingerprint = defaultdict(list)
+    constellation = []
     
     for band in bands:
         start = band[0]
@@ -55,11 +52,11 @@ def peak_finder(song):
         peak_times = librosa.frames_to_time(peak_ind)
         
         for i in range(len(peak_times)):
-            fingerprint[peak_times[i]].append(peaks[i])
+            constellation.append((peak_times[i],peaks[i]))
         
-        sorted_fingerprint = OrderedDict(sorted(fingerprint.items()))
+        sorted_constellation = sorted(constellation.items())
             
-    return sorted_fingerprint
+    return sorted_constellation
         
 ostava_peaks = peak_finder("songs/Ostavi trag_September.mp3")
 duckworth_peaks = peak_finder("songs/DUCKWORTH_Kendrick_Lamar.mp3")
