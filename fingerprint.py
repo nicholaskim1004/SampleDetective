@@ -62,7 +62,8 @@ class Fingerprint:
         Will only store the difference between the anchor and target if is less than or equal to some maximum time delta
         default is set at 6 time steps
         
-        The final output will be a list of tuples that stores the anchor, target, and the time delta
+        The final output will be a list of tuples that stores the hash: anchor, target, and the time delta, and the time stamp
+        ex. ((b1, b2, dt), t1) -> (hash, time stamp)
     '''
     def build_fingerprint(self, max_dt=6):
         fingerprints = []
@@ -73,7 +74,7 @@ class Fingerprint:
             for b2, t2 in events[i+1:]:
                 dt = t2 - t1
                 if 0 < dt <= max_dt:
-                    fingerprints.append((b1, b2, dt))
+                    fingerprints.append(((b1, b2, dt),t1))
                 if dt > max_dt:
                     break
 
