@@ -8,6 +8,8 @@ class Fingerprint:
     def __init__(self, song_url):
         self.song_url = song_url
         self.time_series, self.sampling_rate = librosa.load(song_url)
+        self.n_fft = 2048
+        self.hop_length = 512
         self.sftf = np.abs(librosa.stft(self.time_series, hop_length=512))
         
     '''
@@ -19,7 +21,7 @@ class Fingerprint:
         to ensure we capture the correct bin
     '''
     def get_freq_loc(self):
-        frequency_bins = np.arange(0,1 + 2048/2) * self.sampling_rate/2048 
+        frequency_bins = np.arange(0,1 + self.n_fft/2) * self.sampling_rate/self.n_fft 
         human_hearing_min, human_hearing_max = 20, 6000
         locations = [] 
         for i, f in enumerate(frequency_bins): 
@@ -36,14 +38,15 @@ class Fingerprint:
         Will then return a list of tuples where each tuple contains the frequency bin index and the time step index
         corresponding to an event detected in the spectrogram. The list will be sorted based on the recorded time step
     '''
-    def extract_events(self, threshold=0.6):
+    def extract_events(self):
         events = []
         
-        locs = self.get_freq_loc(self.sampling_rate)
+        locs = self.get_freq_loc()
         band_energy = self.sftf[locs, :]
 
         for band in range(band_energy.shape[0]):
-            peaks_loc, _ = find_peaks(band_energy[band], height=threshold)
+            thresh = np.percentile(band, 90)
+            peaks_loc, _ = find_peaks(band_energy[band], height=thresh)
             for t in peaks_loc:
                 #for each event it is storing the index corresponding to a frequency band and the time step
                 events.append((locs[band], t))
@@ -61,8 +64,10 @@ class Fingerprint:
         
         The final output will be a list of tuples that stores the anchor, target, and the time delta
     '''
-    def build_fingerprints(self, events, max_dt=6):
+    def build_fingerprint(self, max_dt=6):
         fingerprints = []
+        
+        events = self.extract_events()
 
         for i, (b1, t1) in enumerate(events):
             for b2, t2 in events[i+1:]:
