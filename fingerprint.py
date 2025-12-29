@@ -17,13 +17,20 @@ class Fingerprint:
         between what the human ear can hear:
             20Hz - 6000Hz
         
-        Since the sampling rate can vary for each song there is a 5Hz buffer on either side of the target frequency
-        to ensure we capture the correct bin
+        To help with creating a sparse fingerprint will group the frequency bins into bands of interest:
+        (20,60), (60,250), (250,500), (500,1000), (1000,2000), (2000,4000), (4000,6000)
+        
+        The output will be a list of tuples where each tuple contains the min and max index locations for each band
     '''
     def get_freq_loc(self):
-        frequency_bins = np.arange(0,1 + self.n_fft/2) * self.sampling_rate/self.n_fft 
-        human_hearing_min, human_hearing_max = 20, 6000
-        locations = np.where((frequency_bins >= human_hearing_min) & (frequency_bins <= human_hearing_max))[0]
+        frequencies = np.arange(0,1 + self.n_fft/2) * self.sampling_rate/self.n_fft 
+        cutoffs = [(20,60), (60,250), (250,500), (500,1000), (1000,2000), (2000,4000),(4000,6000)]
+        locations = []
+        
+        for low, high in cutoffs:
+            all_locs = np.where((frequencies >= low) & (frequencies <= high))[0]
+            min_loc, max_loc = all_locs[0], all_locs[-1]
+            locations.append((min_loc, max_loc))
         
         return locations
     
@@ -40,17 +47,21 @@ class Fingerprint:
         events = []
         
         locs = self.get_freq_loc()
-        band_energy = self.sftf[locs, :]
+        
+        for bands in locs:
+            min_l, max_l = bands
+        
+            energy = self.sftf[min_l:max_l+1, :]
+            energy_db = librosa.amplitude_to_db(energy, ref=np.max)
 
-        for band in range(band_energy.shape[0]):
-            thresh = np.percentile(band, 90)
-            peaks_loc, _ = find_peaks(band_energy[band], height=thresh)
-            for t in peaks_loc:
-                #for each event it is storing the index corresponding to a frequency band and the time step
-                events.append((locs[band], t))
-                
-        #sorting the events based on time step
-        events = sorted(events, key=lambda x: x[1])
+            max_db = np.max(energy_db, axis=0)
+            max_locs = np.argmax(energy_db, axis=0)
+            
+            peak_loc, _ = find_peaks(max_db, distance=43, prominence=20)
+            
+            for l in peak_loc:
+                events.append((min_l + max_locs[l], l))
+                 
         return events
     
     '''
