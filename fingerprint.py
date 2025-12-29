@@ -23,10 +23,8 @@ class Fingerprint:
     def get_freq_loc(self):
         frequency_bins = np.arange(0,1 + self.n_fft/2) * self.sampling_rate/self.n_fft 
         human_hearing_min, human_hearing_max = 20, 6000
-        locations = [] 
-        for i, f in enumerate(frequency_bins): 
-            if f >= human_hearing_min and f <= human_hearing_max:
-                locations.append(i) 
+        locations = np.where((frequency_bins >= human_hearing_min) & (frequency_bins <= human_hearing_max))[0]
+        
         return locations
     
     '''
