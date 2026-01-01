@@ -69,12 +69,12 @@ class Fingerprint:
         
         Will set an anchor point (b1, t1) and then look for other points (b2, t2) that occur after
         Will only store the difference between the anchor and target if is less than or equal to some maximum time delta
-        default is set at 6 time steps
+        default is set at 215 time steps or ~5 seconds
         
         The final output will be a list of tuples that stores the hash: anchor, target, and the time delta, and the time stamp
         ex. ((b1, b2, dt), t1) -> (hash, time stamp)
     '''
-    def build_fingerprint(self, max_dt=6):
+    def build_fingerprint(self, max_dt=215):
         fingerprints = []
         
         events = self.extract_events()

@@ -1,0 +1,4 @@
+librosa
+elevenlabs
+numpy
+pandas
